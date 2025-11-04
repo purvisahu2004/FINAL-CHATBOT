@@ -5,6 +5,25 @@ from PyPDF2 import PdfReader
 import google.generativeai as genai
 from sentence_transformers import SentenceTransformer
 import numpy as np
+# NLTK sentence tokenizer fix for Streamlit Cloud
+
+
+def ensure_nltk_tokenizer():
+    try:
+        nltk.data.find("tokenizers/punkt")
+    except LookupError:
+        nltk.download("punkt")
+
+    # Newer NLTK versions also require punkt_tab
+    try:
+        nltk.data.find("tokenizers/punkt_tab")
+    except LookupError:
+        try:
+            nltk.download("punkt_tab")
+        except:
+            pass  # some NLTK versions don't have punkt_tab
+
+ensure_nltk_tokenizer()
 
 # -----------------------
 # USER CONFIG
