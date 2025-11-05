@@ -70,13 +70,13 @@ if not doc_text:
 # -----------------------------
 # Chunk Functions
 # -----------------------------
-def fixed_chunks(t, size=2000):
+def fixed_chunks(t, size=1000):
     t=t.replace("\n"," "); return [t[i:i+size] for i in range(0,len(t),size)]
 
-def recursive_chunks(t, size=2000, ov=200):
+def recursive_chunks(t, size=1000, ov=200):
     step=size-ov; return [t[i:i+size] for i in range(0,len(t),step)]
 
-def sentence_chunks(t, n=5):
+def sentence_chunks(t, n=3):
     s=nltk.sent_tokenize(t); return [" ".join(s[i:i+n]) for i in range(0,len(s),n)]
 
 def paragraph_chunks(t, min_len=200):
