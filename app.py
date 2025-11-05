@@ -90,11 +90,11 @@ if not doc_text:
 # -----------------------
 # Chunkers
 # -----------------------
-def fixed_chunks(t, size=1200):
+def fixed_chunks(t, size=2000):
     t=t.replace("\n"," "); 
     return [t[i:i+size] for i in range(0,len(t),size)]
 
-def recursive_chunks(t, size=1200, overlap=200):
+def recursive_chunks(t, size=2000, overlap=200):
     step=size-overlap; return [t[i:i+size] for i in range(0,len(t),step)]
 
 def sentence_chunks(t, n=6):
@@ -131,7 +131,7 @@ def semantic_chunks(t, win=6, thr=0.65):
 # -----------------------
 # Retrieval (Top-3 Hybrid)
 # -----------------------
-def retrieve_top(chunks, q, k=3):
+def retrieve_top(chunks, q, k=5):
     try:
         m=SentenceTransformer("all-MiniLM-L6-v2")
         ce=m.encode(chunks,convert_to_numpy=True)
