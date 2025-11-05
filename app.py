@@ -164,18 +164,39 @@ Answer in 4-7 bullet points with facts from the document:
 # Agentic Chunking
 # -----------------------
 def agentic_answer(text, q):
-    c=paragraph_chunks(text,200)
-    if len(c)<6: c=sentence_chunks(text,6)
-    if len(c)<1: c=fixed_chunks(text,1000)
+    # Normalize British ↔ US spelling for anemia
+    text = text.replace("anaemia", "anemia")
+    q = q.replace("anaemia", "anemia")
 
-    scores=[sum(w.lower() in ch.lower() for w in q.split()) for ch in c]
-    idx=np.argsort(scores)[-8:][::-1]
-    cand=[c[i] for i in idx]
+    # Chunk selection (same logic you had)
+    c = paragraph_chunks(text, 200)
+    if len(c) < 6:
+        c = sentence_chunks(text, 6)
+    if len(c) < 1:
+        c = fixed_chunks(text, 1000)
 
-    numbered="\n".join([f"{i+1}. {cand[i][:500]}" for i in range(len(cand))])
-    sel=f"""
-Select the best chunks for answering.
-Return ONLY a JSON list of chunk numbers.
+    # ---- ✅ Embedding-based similarity instead of keyword match ----
+    try:
+        m = SentenceTransformer("all-MiniLM-L6-v2")
+        ce = m.encode(c, convert_to_numpy=True)
+        qe = m.encode([q], convert_to_numpy=True)[0]
+        sims = (ce @ qe) / (np.linalg.norm(ce, axis=1) * np.linalg.norm(qe) + 1e-10)
+
+        # take top 8 candidate chunks
+        idx = np.argsort(sims)[-8:][::-1]
+        cand = [c[i] for i in idx]
+    except:
+        # fallback if model fails
+        scores = [sum(w.lower() in ch.lower() for w in q.split()) for ch in c]
+        idx = np.argsort(scores)[-8:][::-1]
+        cand = [c[i] for i in idx]
+
+    # Prepare prompt for LLM to select best chunks
+    numbered = "\n".join([f"{i+1}. {cand[i][:500]}" for i in range(len(cand))])
+    sel = f"""
+You are selecting the most relevant chunks to answer the question.
+
+Return ONLY a JSON list of chunk numbers. No text explanation.
 
 Question: {q}
 
@@ -184,16 +205,19 @@ Chunks:
 
 Example output: [2,4,1]
 """
-    r=gemini_answer(sel,200)
 
-    chosen=[]
+    r = gemini_answer(sel, 200)
+
+    chosen = []
     try:
-        arr=json.loads(re.search(r"\[.*?\]",r).group())
+        arr = json.loads(re.search(r"\[.*?\]", r).group())
         for x in arr[:5]:
-            if isinstance(x,int) and 1<=x<=len(cand): chosen.append(cand[x-1])
-    except: chosen=[cand[0]]
+            if isinstance(x, int) and 1 <= x <= len(cand):
+                chosen.append(cand[x-1])
+    except:
+        chosen = [cand[0]]
 
-    return answer_from_chunks(chosen,q)
+    return answer_from_chunks(chosen, q)
 
 # -----------------------
 # Sidebar
