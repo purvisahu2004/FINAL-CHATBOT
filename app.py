@@ -89,6 +89,27 @@ def paragraph_chunks(t, min_len=100):
             else: out.append(x)
     if buf: out.append(buf)
     return out
+# -----------------------
+# Paragraph Top-K helper (keep only best 5 paragraphs)
+# -----------------------
+def paragraph_top_k(text, query, k=5):
+    paras = paragraph_chunks(text, min_len=200)
+    if not paras:
+        return []
+
+    try:
+        m = SentenceTransformer("all-MiniLM-L6-v2")
+        pe = m.encode(paras, convert_to_numpy=True, show_progress_bar=False)
+        qe = m.encode([query], convert_to_numpy=True)[0]
+
+        sims = (pe @ qe) / (np.linalg.norm(pe, axis=1) * np.linalg.norm(qe) + 1e-10)
+        idx = np.argsort(sims)[-k:][::-1]
+
+        return [paras[i] for i in idx]
+    except:
+        scores = [sum(w.lower() in p.lower() for w in query.split()) for p in paras]
+        idx = np.argsort(scores)[-k:][::-1]
+        return [paras[i] for i in idx]
 
 def semantic_chunks(t, win=6, thr=0.65):
     s=nltk.sent_tokenize(t)
@@ -192,7 +213,9 @@ if st.button("Get Answer"):
         elif method=="Recursive chunking": ch=recursive_chunks(doc_text)
         elif method=="Semantic chunking": ch=semantic_chunks(doc_text)
         elif method=="Sentence chunking": ch=sentence_chunks(doc_text)
-        elif method=="Paragraph chunking": ch=paragraph_chunks(doc_text)
+        elif method=="Paragraph chunking":ch = paragraph_top_k(doc_text, q, k=5) 
+        if not ch:
+             ch = paragraph_chunks(doc_text)
         else:
             ans, chosen = agentic_answer(doc_text, q)
             st.success("Answer (Agentic)")
