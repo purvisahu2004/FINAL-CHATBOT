@@ -79,7 +79,7 @@ def recursive_chunks(t, size=1000, ov=200):
 def sentence_chunks(t, n=3):
     s=nltk.sent_tokenize(t); return [" ".join(s[i:i+n]) for i in range(0,len(s),n)]
 
-def paragraph_chunks(t, min_len=200):
+def paragraph_chunks(t, min_len=100):
     p=[x.strip() for x in t.split("\n\n") if x.strip()]
     out=[]; buf=""
     for x in p:
@@ -144,7 +144,7 @@ def agentic_answer(text, q):
     text=text.replace("anaemia","anemia"); q=q.replace("anaemia","anemia")
     c=paragraph_chunks(text,200)
     if len(c)<6: c=sentence_chunks(text,6)
-    if len(c)<1: c=fixed_chunks(text,2000)
+    if len(c)<1: c=fixed_chunks(text,1000)
 
     m=SentenceTransformer("all-MiniLM-L6-v2")
     ce=m.encode(c,convert_to_numpy=True)
