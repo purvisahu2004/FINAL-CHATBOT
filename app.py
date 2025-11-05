@@ -42,7 +42,7 @@ st.markdown("""
 <style>
 .stApp { background:white; color:black; }
 h1,h2,h3,label { color:black !important; }
-.stTextInput>div>div>input { color:black; }
+.stTextInput>div>div>input { color:white; }
 </style>
 """, unsafe_allow_html=True)
 
