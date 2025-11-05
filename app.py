@@ -196,9 +196,8 @@ if st.button("Get Answer"):
         elif method=="Recursive chunking": ch=recursive_chunks(doc_text)
         elif method=="Semantic chunking": ch=semantic_chunks(doc_text)
         elif method=="Sentence chunking": ch=sentence_chunks(doc_text)
-        elif method=="Paragraph chunking":ch = paragraph_top_k(doc_text, q, k=5) 
-        if not ch:
-             ch = paragraph_chunks(doc_text)
+        elif method=="Paragraph chunking": ch = paragraph_chunks(doc_text)
+       
         else:
             ans, chosen = agentic_answer(doc_text, q)
             st.success("Answer (Agentic)")
